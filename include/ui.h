@@ -17,10 +17,9 @@ class UiController {
   void onClick();
   void onDoubleClick();
   void onLongPress();
-  void factoryResetAll();
 
  private:
-  enum class Mode : uint8_t { Normal, Config, ClockSet, FactoryResetConfirm };
+  enum class Mode : uint8_t { Normal, Config, ClockSet };
   enum Screen : uint8_t {
     Stats = 0,
     NerdLevel,
@@ -42,9 +41,7 @@ class UiController {
   };
 
   static constexpr uint8_t kConfigClockItem = FeatureCount;
-  static constexpr uint8_t kConfigNtpItem = FeatureCount + 1;
-  static constexpr uint8_t kConfigFactoryResetItem = FeatureCount + 2;
-  static constexpr uint8_t kConfigItemCount = FeatureCount + 3;
+  static constexpr uint8_t kConfigItemCount = FeatureCount + 1;
 
   bool featureEnabled(uint8_t feature) const;
   void setFeatureEnabled(uint8_t feature, bool enabled);
@@ -55,7 +52,6 @@ class UiController {
   void leaveConfig();
   void enterClockSet();
   void saveClock();
-  void drawFactoryResetConfirm();
 
   uint16_t clockMinutesNow() const;
   void drawSplash();
@@ -84,6 +80,9 @@ class UiController {
   uint32_t lastScreenChangeMs_ = 0;
   uint32_t lastRenderMs_ = 0;
 
+  bool clockConfigured_ = false;
+  uint16_t clockBaseMinutes_ = 10 * 60;
+  uint32_t clockBaseMs_ = 0;
   uint8_t editHour_ = 10;
   uint8_t editMinute_ = 0;
   bool editHours_ = true;
