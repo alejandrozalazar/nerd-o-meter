@@ -77,11 +77,17 @@ if [[ -n "$(find_esptool)" ]]; then
   ok "esptool: $($(find_esptool) version 2>&1 | head -n 1 || true)"
 else
   if [[ $INSTALL -eq 1 ]]; then
-    info "Installing esptool with Homebrew..."
-    brew install esptool
-    ok "esptool installed"
+    info "Installing esptool with Python/pip..."
+    python3 -m pip install --user --upgrade esptool
+    export PATH="$HOME/Library/Python/$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')/bin:$PATH"
+    if [[ -n "$(find_esptool)" ]]; then
+      ok "esptool installed"
+    else
+      warn "esptool installation completed but command was not found in PATH"
+      missing=1
+    fi
   else
-    warn "esptool missing. Install with: brew install esptool"
+    warn "esptool missing. Install with: python3 -m pip install --user esptool"
     missing=1
   fi
 fi
