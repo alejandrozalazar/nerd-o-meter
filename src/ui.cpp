@@ -6,6 +6,7 @@
 #include "radio_monitor.h"
 #include "scanners.h"
 #include "schedule.h"
+#include "timekeeper.h"
 
 namespace {
 UiController* uiInstance = nullptr;
@@ -102,6 +103,8 @@ void UiController::loop() {
     drawConfig();
   } else if (mode_ == Mode::ClockSet) {
     drawClockSet();
+  } else if (mode_ == Mode::ResetConfirm) {
+    drawResetConfirm();
   } else {
     drawNormal();
   }
@@ -113,6 +116,9 @@ void UiController::onClick() {
     advanceScreen();
   } else if (mode_ == Mode::Config) {
     configItem_ = (configItem_ + 1) % kConfigItemCount;
+  } else if (mode_ == Mode::ResetConfirm) {
+    mode_ = Mode::Config;
+    configItem_ = kConfigResetItem;
   } else {
     if (editHours_) {
       editHour_ = (editHour_ + 1) % 24;
@@ -128,9 +134,17 @@ void UiController::onDoubleClick() {
   if (mode_ == Mode::Config) {
     if (configItem_ == kConfigClockItem) {
       enterClockSet();
+    } else if (configItem_ == kConfigResetItem) {
+      mode_ = Mode::ResetConfirm;
     } else {
       setFeatureEnabled(configItem_, !featureEnabled(configItem_));
     }
+    return;
+  }
+
+  if (mode_ == Mode::ResetConfirm) {
+    mode_ = Mode::Config;
+    configItem_ = kConfigResetItem;
     return;
   }
 
@@ -142,6 +156,8 @@ void UiController::onLongPress() {
     enterConfig();
   } else if (mode_ == Mode::Config) {
     leaveConfig();
+  } else if (mode_ == Mode::ResetConfirm) {
+    clearStoredSettings();
   } else {
     saveClock();
   }
@@ -234,6 +250,21 @@ void UiController::setClock(uint8_t hour, uint8_t minute) {
   editHour_ = hour;
   editMinute_ = minute;
   Serial.printf("[clock] External sync applied: %02u:%02u\n", hour, minute);
+}
+
+void UiController::clearStoredSettings() {
+  Serial.println("[settings] Clearing Nerd-O-Meter persistent settings");
+  prefs_.clear();
+  gTime.clearWifiCredentials();
+
+  display_.clearBuffer();
+  drawHeader("SETTINGS CLEARED");
+  display_.setFont(u8g2_font_6x10_tf);
+  drawCentered("RESTARTING...", 38);
+  display_.sendBuffer();
+
+  delay(500);
+  ESP.restart();
 }
 
 uint16_t UiController::clockMinutesNow() const {
@@ -520,6 +551,15 @@ void UiController::drawConfig() {
     return;
   }
 
+  if (configItem_ == kConfigResetItem) {
+    display_.setFont(u8g2_font_9x15B_tf);
+    display_.drawStr(4, 38, "RESET CFG");
+    display_.setFont(u8g2_font_5x7_tf);
+    display_.drawStr(4, 52, "screens + WiFi + defaults");
+    display_.drawStr(4, 63, "double: confirmation");
+    return;
+  }
+
   display_.setFont(u8g2_font_9x15B_tf);
   display_.drawStr(4, 38, kFeatureNames[configItem_]);
 
@@ -529,6 +569,18 @@ void UiController::drawConfig() {
 
   display_.setFont(u8g2_font_5x7_tf);
   display_.drawStr(4, 63, "click next / double toggle");
+}
+
+void UiController::drawResetConfirm() {
+  drawHeader("RESET CONFIG?");
+
+  display_.setFont(u8g2_font_6x10_tf);
+  drawCentered("ERASE SAVED SETTINGS", 28);
+  drawCentered("INCLUDING WIFI", 40);
+
+  display_.setFont(u8g2_font_5x7_tf);
+  drawCentered("HOLD = ERASE + RESTART", 54);
+  drawCentered("click/double = cancel", 63);
 }
 
 void UiController::drawClockSet() {
