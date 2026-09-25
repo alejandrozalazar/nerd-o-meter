@@ -1,0 +1,33 @@
+#pragma once
+
+#include <Arduino.h>
+
+struct QrBitmap {
+  uint8_t size;
+  const uint32_t* rows;
+};
+
+static const uint32_t PROGMEM kGithubQrRows[] = {
+  0x00000000UL, 0x3f9de4feUL, 0x20a1f282UL, 0x2ead3ebaUL,
+  0x2e989cbaUL, 0x2e89c2baUL, 0x20b15682UL, 0x3faaaafeUL,
+  0x002ea600UL, 0x1b90e996UL, 0x24a2d97eUL, 0x1e56acd4UL,
+  0x1a31d330UL, 0x34e642d6UL, 0x00742866UL, 0x3fa692eeUL,
+  0x14e47146UL, 0x1127a694UL, 0x25eab730UL, 0x334c2ebaUL,
+  0x3367b710UL, 0x0bf2dd8aUL, 0x3a322e00UL, 0x12a402feUL,
+  0x1e2b6482UL, 0x23e7e4baUL, 0x0fb86ebaUL, 0x2e3894baUL,
+  0x1275f682UL, 0x17e436feUL, 0x00000000UL,
+};
+
+static const uint32_t PROGMEM kAgendaQrRows[] = {
+  0x00000000UL, 0x3f8beefeUL, 0x20928e82UL, 0x2ebe9abaUL,
+  0x2e99d6baUL, 0x2eaf80baUL, 0x2096f282UL, 0x3faaaafeUL,
+  0x00242400UL, 0x3d2d10e6UL, 0x3f8def5aUL, 0x21a9b1a0UL,
+  0x34bf9b0cUL, 0x106428aaUL, 0x3f8bc440UL, 0x2fe781d4UL,
+  0x319c2b44UL, 0x1175109aUL, 0x37c3635eUL, 0x28c1b5c8UL,
+  0x30779c20UL, 0x27e527c6UL, 0x223b8a00UL, 0x2ebb88feUL,
+  0x322d2e82UL, 0x37f63ebaUL, 0x206be0baUL, 0x3c4fb8baUL,
+  0x372ca682UL, 0x1525b2feUL, 0x00000000UL,
+};
+
+static const QrBitmap kGithubQr = {31, kGithubQrRows};
+static const QrBitmap kAgendaQr = {31, kAgendaQrRows};
