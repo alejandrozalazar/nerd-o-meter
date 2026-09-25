@@ -18,6 +18,8 @@ class UiController {
   void onDoubleClick();
   void onLongPress();
 
+  void setClock(uint8_t hour, uint8_t minute);
+
  private:
   enum class Mode : uint8_t { Normal, Config, ClockSet };
   enum Screen : uint8_t {
