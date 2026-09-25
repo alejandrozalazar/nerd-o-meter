@@ -133,7 +133,8 @@ void RadioMonitor::rememberNode(uint32_t node, uint32_t now) {
       return;
     }
     if (nodes_[i].node == 0) {
-      nodes_[i] = {node, now};
+      nodes_[i].node = node;
+      nodes_[i].seenAtMs = now;
       return;
     }
     const uint32_t age = now - nodes_[i].seenAtMs;
@@ -142,7 +143,8 @@ void RadioMonitor::rememberNode(uint32_t node, uint32_t now) {
       oldestIndex = i;
     }
   }
-  nodes_[oldestIndex] = {node, now};
+  nodes_[oldestIndex].node = node;
+  nodes_[oldestIndex].seenAtMs = now;
 }
 
 uint16_t RadioMonitor::packetsInWindow(uint32_t windowMs) const {
