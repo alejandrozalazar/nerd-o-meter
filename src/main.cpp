@@ -3,6 +3,7 @@
 #include "config.h"
 #include "radio_monitor.h"
 #include "scanners.h"
+#include "timekeeper.h"
 #include "ui.h"
 
 void setup() {
@@ -12,6 +13,15 @@ void setup() {
   Serial.println("=== NERD-O-METER boot ===");
 
   gUi.begin();
+
+  // NTP is optional. Credentials live only in the ESP32 NVS and are never
+  // compiled into this public repository.
+  gTime.begin();
+  if (gTime.valid()) {
+    const uint16_t now = gTime.currentMinutes();
+    gUi.setClock(now / 60, now % 60);
+  }
+
   gRadio.begin();
   gScanners.begin();
 
@@ -21,6 +31,7 @@ void setup() {
 
 void loop() {
   gUi.tickButton();
+  gTime.loop();
   gRadio.loop();
   gScanners.loop();
   gUi.loop();
