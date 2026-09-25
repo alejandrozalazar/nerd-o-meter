@@ -43,8 +43,9 @@ class UiController {
   };
 
   static constexpr uint8_t kConfigClockItem = FeatureCount;
-  static constexpr uint8_t kConfigResetItem = FeatureCount + 1;
-  static constexpr uint8_t kConfigItemCount = FeatureCount + 2;
+  static constexpr uint8_t kConfigScreenTimeItem = FeatureCount + 1;
+  static constexpr uint8_t kConfigResetItem = FeatureCount + 2;
+  static constexpr uint8_t kConfigItemCount = FeatureCount + 3;
 
   bool featureEnabled(uint8_t feature) const;
   void setFeatureEnabled(uint8_t feature, bool enabled);
@@ -55,6 +56,7 @@ class UiController {
   void leaveConfig();
   void enterClockSet();
   void saveClock();
+  void cycleScreenInterval();
   void clearStoredSettings();
   void drawResetConfirm();
 
@@ -84,6 +86,7 @@ class UiController {
   uint8_t configItem_ = 0;
   uint32_t lastScreenChangeMs_ = 0;
   uint32_t lastRenderMs_ = 0;
+  uint32_t screenIntervalMs_ = 4200;
 
   bool clockConfigured_ = false;
   uint16_t clockBaseMinutes_ = 10 * 60;
