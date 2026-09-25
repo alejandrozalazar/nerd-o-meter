@@ -225,6 +225,17 @@ void UiController::saveClock() {
                 editHour_, editMinute_);
 }
 
+void UiController::setClock(uint8_t hour, uint8_t minute) {
+  hour %= 24;
+  minute %= 60;
+  clockBaseMinutes_ = static_cast<uint16_t>(hour) * 60u + minute;
+  clockBaseMs_ = millis();
+  clockConfigured_ = true;
+  editHour_ = hour;
+  editMinute_ = minute;
+  Serial.printf("[clock] External sync applied: %02u:%02u\n", hour, minute);
+}
+
 uint16_t UiController::clockMinutesNow() const {
   if (!clockConfigured_) return 0;
 
