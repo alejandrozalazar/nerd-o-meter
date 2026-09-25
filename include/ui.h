@@ -21,7 +21,7 @@ class UiController {
   void setClock(uint8_t hour, uint8_t minute);
 
  private:
-  enum class Mode : uint8_t { Normal, Config, ClockSet };
+  enum class Mode : uint8_t { Normal, Config, ClockSet, ResetConfirm };
   enum Screen : uint8_t {
     Stats = 0,
     NerdLevel,
@@ -43,7 +43,8 @@ class UiController {
   };
 
   static constexpr uint8_t kConfigClockItem = FeatureCount;
-  static constexpr uint8_t kConfigItemCount = FeatureCount + 1;
+  static constexpr uint8_t kConfigResetItem = FeatureCount + 1;
+  static constexpr uint8_t kConfigItemCount = FeatureCount + 2;
 
   bool featureEnabled(uint8_t feature) const;
   void setFeatureEnabled(uint8_t feature, bool enabled);
@@ -54,6 +55,8 @@ class UiController {
   void leaveConfig();
   void enterClockSet();
   void saveClock();
+  void clearStoredSettings();
+  void drawResetConfirm();
 
   uint16_t clockMinutesNow() const;
   void drawSplash();
