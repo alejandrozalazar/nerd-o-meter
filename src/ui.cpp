@@ -38,6 +38,10 @@ const char* const kBuzzwords[] = {
 
 constexpr size_t kBuzzwordCount = sizeof(kBuzzwords) / sizeof(kBuzzwords[0]);
 
+constexpr uint32_t kScreenIntervalsMs[] = {2000, 3000, 4200, 6000, 10000, 15000};
+constexpr size_t kScreenIntervalCount =
+    sizeof(kScreenIntervalsMs) / sizeof(kScreenIntervalsMs[0]);
+
 const char* const kFeatureNames[] = {
     "STATS", "NERD LEVEL", "BUZZWORD", "SCHEDULE",
     "GITHUB QR", "AGENDA QR", "LORA POPUP"};
@@ -62,6 +66,16 @@ void UiController::begin() {
 
   prefs_.begin("nerdometer", false);
   featureMask_ = prefs_.getUChar("features", 0x7F);
+  screenIntervalMs_ = prefs_.getUInt("screenMs", Config::SCREEN_MS);
+  bool validInterval = false;
+  for (size_t i = 0; i < kScreenIntervalCount; ++i) {
+    if (screenIntervalMs_ == kScreenIntervalsMs[i]) {
+      validInterval = true;
+      break;
+    }
+  }
+  if (!validInterval) screenIntervalMs_ = Config::SCREEN_MS;
+
   editHour_ = prefs_.getUChar("lastHour", 10);
   editMinute_ = prefs_.getUChar("lastMin", 0);
   if (editHour_ > 23) editHour_ = 10;
@@ -91,7 +105,7 @@ void UiController::tickButton() {
 void UiController::loop() {
   const uint32_t now = millis();
 
-  if (mode_ == Mode::Normal && now - lastScreenChangeMs_ >= Config::SCREEN_MS) {
+  if (mode_ == Mode::Normal && now - lastScreenChangeMs_ >= screenIntervalMs_) {
     advanceScreen();
   }
 
@@ -134,6 +148,8 @@ void UiController::onDoubleClick() {
   if (mode_ == Mode::Config) {
     if (configItem_ == kConfigClockItem) {
       enterClockSet();
+    } else if (configItem_ == kConfigScreenTimeItem) {
+      cycleScreenInterval();
     } else if (configItem_ == kConfigResetItem) {
       mode_ = Mode::ResetConfirm;
     } else {
@@ -250,6 +266,23 @@ void UiController::setClock(uint8_t hour, uint8_t minute) {
   editHour_ = hour;
   editMinute_ = minute;
   Serial.printf("[clock] External sync applied: %02u:%02u\n", hour, minute);
+}
+
+void UiController::cycleScreenInterval() {
+  size_t current = 0;
+  for (size_t i = 0; i < kScreenIntervalCount; ++i) {
+    if (screenIntervalMs_ == kScreenIntervalsMs[i]) {
+      current = i;
+      break;
+    }
+  }
+
+  current = (current + 1) % kScreenIntervalCount;
+  screenIntervalMs_ = kScreenIntervalsMs[current];
+  prefs_.putUInt("screenMs", screenIntervalMs_);
+
+  Serial.printf("[ui] Screen interval: %.1f s\n",
+                screenIntervalMs_ / 1000.0f);
 }
 
 void UiController::clearStoredSettings() {
@@ -417,7 +450,7 @@ void UiController::drawNerdLevel() {
 
 void UiController::drawBuzzword() {
   drawHeader("BUZZWORD OF THE MOMENT");
-  const size_t index = (millis() / Config::SCREEN_MS) % kBuzzwordCount;
+  const size_t index = (millis() / screenIntervalMs_) % kBuzzwordCount;
 
   display_.setFont(u8g2_font_9x15B_tf);
   drawWrapped(kBuzzwords[index], 4, 31, 120, 17, 2);
@@ -548,6 +581,21 @@ void UiController::drawConfig() {
 
     display_.setFont(u8g2_font_5x7_tf);
     display_.drawStr(4, 62, "double: set time");
+    return;
+  }
+
+  if (configItem_ == kConfigScreenTimeItem) {
+    display_.setFont(u8g2_font_9x15B_tf);
+    display_.drawStr(4, 38, "SCREEN TIME");
+
+    char intervalText[24];
+    snprintf(intervalText, sizeof(intervalText), "%.1f sec",
+             screenIntervalMs_ / 1000.0f);
+    display_.setFont(u8g2_font_6x10_tf);
+    display_.drawStr(4, 52, intervalText);
+
+    display_.setFont(u8g2_font_5x7_tf);
+    display_.drawStr(4, 63, "double: next preset");
     return;
   }
 
